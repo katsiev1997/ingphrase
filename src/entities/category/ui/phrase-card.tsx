@@ -1,5 +1,6 @@
 "use client";
 
+import { PlusIcon } from "lucide-react";
 import { useRef } from "react";
 
 type PhraseCardProps = {
@@ -39,21 +40,12 @@ export function PhraseCard({
 				aria-controls={`phrase-content-${id}`}
 			>
 				<span className="text-emerald-900 dark:text-emerald-100 font-medium">{phrase}</span>
-				<svg
-					className={`min-w-5 min-h-5 w-5 h-5 text-emerald-600 dark:text-emerald-400 transition-transform duration-200 ${
+
+				<PlusIcon
+					className={`size-6 text-emerald-600 dark:text-emerald-400 transition-transform duration-200 ${
 						isOpen ? "rotate-[135deg]" : ""
 					}`}
-					fill="none"
-					stroke="currentColor"
-					viewBox="0 0 24 24"
-				>
-					<path
-						strokeLinecap="round"
-						strokeLinejoin="round"
-						strokeWidth="2"
-						d="M12 4v16m8-8H4"
-					/>
-				</svg>
+				/>
 			</button>
 			<div
 				id={`phrase-content-${id}`}

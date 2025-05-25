@@ -1,10 +1,18 @@
-import { CategoriesList } from "@/features/category-list";
+import { PhraseList } from "@/features/phrase-list";
 import { Loader2Icon } from "lucide-react";
 import { Suspense } from "react";
 
-export default function Home() {
+type Props = {
+	params: Promise<{
+		categoryId: string;
+	}>;
+};
+
+export default async function Home({ params }: Props) {
+	const categoryId = (await params).categoryId;
+
 	return (
-		<div className="w-full h-full pb-[100px]">
+		<div className="w-full h-full">
 			<Suspense
 				fallback={
 					<div className="w-full flex justify-center items-center h-full">
@@ -12,7 +20,7 @@ export default function Home() {
 					</div>
 				}
 			>
-				<CategoriesList />
+				<PhraseList categoryId={categoryId} />
 			</Suspense>
 		</div>
 	);
