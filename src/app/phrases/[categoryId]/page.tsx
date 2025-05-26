@@ -1,5 +1,6 @@
 import { PhraseList } from "@/features/phrase-list";
-import { Loader2Icon } from "lucide-react";
+import { ArrowLeftIcon, Loader2Icon } from "lucide-react";
+import Link from "next/link";
 import { Suspense } from "react";
 
 type Props = {
@@ -20,6 +21,12 @@ export default async function Home({ params }: Props) {
 					</div>
 				}
 			>
+				<Link href="/" className="text-emerald-600 dark:text-emerald-400 mx-4">
+					<div className="flex items-center gap-2 text-sm">
+						<ArrowLeftIcon />
+						<p>Вернуться назад</p>
+					</div>
+				</Link>
 				<PhraseList categoryId={categoryId} />
 			</Suspense>
 		</div>

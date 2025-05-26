@@ -11,7 +11,7 @@ type CategoryCardProps = {
 
 export function CategoryCard({ id, category, className }: CategoryCardProps) {
 	return (
-		<Link href={`/${id}`}>
+		<Link href={`/phrases/${id}`}>
 			<div
 				className={`bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-800 rounded-lg shadow-sm overflow-hidden ${className}`}
 			>
