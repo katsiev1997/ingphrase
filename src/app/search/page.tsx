@@ -1,19 +1,11 @@
-import { PhraseList } from "@/features/phrase-list";
+import { PhraseSearch } from "@/features/phrase-search";
 import { ArrowLeftIcon, Loader2Icon } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 
-type Props = {
-	params: Promise<{
-		categoryId: string;
-	}>;
-};
-
-export default async function Home({ params }: Props) {
-	const categoryId = (await params).categoryId;
-
+export default function SearchPage() {
 	return (
-		<div className="w-full">
+		<div className="w-full h-full pb-[100px]">
 			<Suspense
 				fallback={
 					<div className="w-full flex justify-center items-center h-full">
@@ -27,7 +19,7 @@ export default async function Home({ params }: Props) {
 						<p>Вернуться назад</p>
 					</div>
 				</Link>
-				<PhraseList categoryId={categoryId} />
+				<PhraseSearch />
 			</Suspense>
 		</div>
 	);
