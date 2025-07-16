@@ -21,8 +21,10 @@ export default function RootLayout({
 	children: React.ReactNode;
 }>) {
 	return (
-		<html lang="en">
-			<body className={`${montserrat.variable} antialiased`}>
+		<html lang="ru">
+			<body
+				className={`${montserrat.variable} min-h-screen bg-emerald-50 dark:bg-background dark:text-foreground`}
+			>
 				<ReactQueryProvider>
 					{children}
 					<NavMenu />

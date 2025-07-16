@@ -2,7 +2,7 @@
 
 import { PhraseCard } from "@/entities/category/ui/phrase-card";
 import { useSearchPhrases } from "@/entities/phrase/model/queries/use-search-phrases";
-import { Loader2Icon } from "lucide-react";
+import { Loader } from "@/shared/ui/loader";
 import { useState } from "react";
 
 export const PhraseSearch = () => {
@@ -20,11 +20,7 @@ export const PhraseSearch = () => {
 				className="w-full p-4 rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950 text-emerald-900 dark:text-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-600 dark:focus:ring-emerald-400"
 			/>
 
-			{isPending && searchQuery.length > 0 && (
-				<div className="flex justify-center">
-					<Loader2Icon className="animate-spin text-emerald-600 h-20 w-20 dark:text-emerald-400" />
-				</div>
-			)}
+			{isPending && searchQuery.length > 0 && <Loader />}
 
 			<div className="flex flex-col gap-4 overflow-y-auto">
 				{data?.map((phrase) => (
@@ -35,7 +31,9 @@ export const PhraseSearch = () => {
 						translation={phrase.translate}
 						transcription={phrase.transcription}
 						isOpen={openPhraseId === String(phrase.id)}
-						setOpen={(isOpen) => setOpenPhraseId(isOpen ? String(phrase.id) : null)}
+						setOpen={(isOpen) =>
+							setOpenPhraseId(isOpen ? String(phrase.id) : null)
+						}
 					/>
 				))}
 				{data?.length === 0 && searchQuery.length > 0 && (
@@ -46,4 +44,4 @@ export const PhraseSearch = () => {
 			</div>
 		</div>
 	);
-}; 
+};

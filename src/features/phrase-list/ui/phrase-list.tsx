@@ -2,7 +2,7 @@
 
 import { PhraseCard } from "@/entities/category/ui/phrase-card";
 import { useGetPhrases } from "@/entities/phrase/model/queries/use-get-phrases";
-import { Loader2Icon } from "lucide-react";
+import { Loader } from "@/shared/ui/loader";
 import { useState } from "react";
 
 type Props = {
@@ -14,9 +14,7 @@ export const PhraseList = ({ categoryId }: Props) => {
 	const [openPhraseId, setOpenPhraseId] = useState<string | null>(null);
 
 	if (isPending) {
-		return (
-			<Loader2Icon className="animate-spin text-emerald-600 h-20 w-20 dark:text-emerald-400" />
-		);
+		return <Loader />;
 	}
 
 	return (
@@ -29,7 +27,9 @@ export const PhraseList = ({ categoryId }: Props) => {
 					translation={phrase.translate}
 					transcription={phrase.transcription}
 					isOpen={openPhraseId === String(phrase.id)}
-					setOpen={(isOpen) => setOpenPhraseId(isOpen ? String(phrase.id) : null)}
+					setOpen={(isOpen) =>
+						setOpenPhraseId(isOpen ? String(phrase.id) : null)
+					}
 				/>
 			))}
 		</div>

@@ -1,6 +1,12 @@
 "use client";
 
-import { BookHeart, House, MessagesSquare, Search, UserRoundCog } from "lucide-react";
+import {
+	BookHeart,
+	House,
+	MessagesSquare,
+	Search,
+	UserRoundCog,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";

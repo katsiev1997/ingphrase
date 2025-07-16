@@ -1,36 +1,94 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# IngPhrase - Ингушско-русский разговорник
 
-## Getting Started
+IngPhrase - это современное веб-приложение, представляющее собой интерактивный разговорник для изучения ингушского языка. Приложение позволяет пользователям искать фразы по категориям или через поисковую строку, просматривать их перевод и транскрипцию.
 
-First, run the development server:
+## 🚀 Основные возможности
 
+- 📚 Просмотр фраз по категориям
+- 🔍 Поиск фраз на ингушском и русском языках
+- 🎯 Транскрипция для правильного произношения
+- 🌓 Поддержка светлой и темной темы
+- 📱 Адаптивный дизайн для всех устройств
+
+## 🛠 Технологический стек
+
+- **Frontend Framework**: [Next.js 15](https://nextjs.org/) - React фреймворк с SSR
+- **Язык программирования**: [TypeScript](https://www.typescriptlang.org/) - типизированный JavaScript
+- **Стилизация**: [Tailwind CSS](https://tailwindcss.com/) - utility-first CSS фреймворк
+- **База данных**: [Prisma](https://www.prisma.io/) - ORM для работы с базой данных
+- **Управление состоянием**: [TanStack Query](https://tanstack.com/query/latest) - для управления серверным состоянием
+- **HTTP-клиент**: [Axios](https://axios-http.com/) - для выполнения HTTP-запросов
+- **Иконки**: [Lucide React](https://lucide.dev/) - набор красивых иконок
+- **Пакетный менеджер**: [Bun](https://bun.sh/) - современный JavaScript runtime
+
+## 🚀 Начало работы
+
+### Предварительные требования
+
+- Node.js 18+ или Bun
+- Git
+
+### Установка
+
+1. Клонируйте репозиторий:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <your-repo-url>
+cd ingphrase
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Установите зависимости:
+```bash
+# Используя bun (рекомендуется)
+bun install
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+# Или используя npm
+npm install
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. Настройте базу данных:
+```bash
+# Примените миграции Prisma
+bunx prisma migrate dev
+# Или
+npx prisma migrate dev
+```
 
-## Learn More
+4. Запустите приложение в режиме разработки:
+```bash
+# Используя bun
+bun dev
 
-To learn more about Next.js, take a look at the following resources:
+# Или используя npm
+npm run dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+5. Откройте [http://localhost:3000](http://localhost:3000) в вашем браузере.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🏗 Структура проекта
 
-## Deploy on Vercel
+```
+src/
+├── app/              # Роутинг и страницы приложения
+├── entities/         # Бизнес-сущности (фразы, категории)
+├── features/         # Функциональные модули
+├── shared/          # Общие компоненты и утилиты
+└── styles/          # Глобальные стили
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🚀 Деплой
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Приложение можно развернуть на [Vercel](https://vercel.com) одним кликом:
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/ingphrase)
+
+## 📝 Лицензия
+
+Этот проект распространяется под лицензией MIT. Подробности смотрите в файле [LICENSE](LICENSE).
+
+## 👥 Авторы
+
+- Ваше имя - [@katsiev1997](https://github.com/katsiev1997)
+
+## 🤝 Вклад в проект
+
+Мы приветствуем вклад в развитие проекта! Пожалуйста, ознакомьтесь с нашим руководством по внесению изменений перед тем, как отправить pull request.
