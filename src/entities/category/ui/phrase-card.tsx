@@ -39,7 +39,9 @@ export function PhraseCard({
 				aria-expanded={isOpen}
 				aria-controls={`phrase-content-${id}`}
 			>
-				<span className="text-emerald-900 dark:text-emerald-100 font-medium">{phrase}</span>
+				<span className="text-emerald-900 dark:text-emerald-100 font-medium">
+					{phrase}
+				</span>
 
 				<PlusIcon
 					className={`size-6 text-emerald-600 dark:text-emerald-400 transition-transform duration-200 ${

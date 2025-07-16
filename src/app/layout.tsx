@@ -4,6 +4,7 @@ import "./globals.css";
 
 import ReactQueryProvider from "@/shared/providers/react-query-provider";
 import { NavMenu } from "@/features/nav-menu";
+import { PageTransition } from "@/shared/ui";
 
 const montserrat = Montserrat({
 	variable: "--font-geist-sans",
@@ -26,7 +27,7 @@ export default function RootLayout({
 				className={`${montserrat.variable} min-h-screen bg-emerald-50 dark:bg-background dark:text-foreground`}
 			>
 				<ReactQueryProvider>
-					{children}
+					<PageTransition>{children}</PageTransition>
 					<NavMenu />
 				</ReactQueryProvider>
 			</body>

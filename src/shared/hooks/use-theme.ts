@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 
-type Theme = "light" | "dark" | "system";
+type Theme = "light" | "dark";
 
 export function useTheme() {
-	const [theme, setTheme] = useState<Theme>("system");
+	const [theme, setTheme] = useState<Theme>("light");
 	const [mounted, setMounted] = useState(false);
 
 	useEffect(() => {
@@ -21,16 +21,7 @@ export function useTheme() {
 
 		const root = window.document.documentElement;
 		root.classList.remove("light", "dark");
-
-		if (theme === "system") {
-			const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-				.matches
-				? "dark"
-				: "light";
-			root.classList.add(systemTheme);
-		} else {
-			root.classList.add(theme);
-		}
+		root.classList.add(theme);
 
 		localStorage.setItem("theme", theme);
 	}, [theme, mounted]);
@@ -38,7 +29,6 @@ export function useTheme() {
 	const toggleTheme = () => {
 		setTheme((prev) => {
 			if (prev === "light") return "dark";
-			if (prev === "dark") return "system";
 			return "light";
 		});
 	};

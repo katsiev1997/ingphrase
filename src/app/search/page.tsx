@@ -14,17 +14,17 @@ export default function SearchPage() {
 	return (
 		<div className="w-full h-full pb-[100px]">
 			<div className="px-4 py-6">
-				<h1 className="text-2xl font-bold text-emerald-900 dark:text-emerald-100 mb-4">
+				<h1 className="text-2xl font-bold text-emerald-900 dark:text-emerald-100 mb-4 flex items-center gap-2">
 					Поиск фраз
 				</h1>
-			</div>
-			<Suspense fallback={<Loader />}>
-				<Link href="/" className="text-emerald-600 dark:text-emerald-400 mx-4">
-					<div className="w-52 mx-5 flex items-center gap-2 text-sm border border-emerald-600 dark:border-emerald-400 rounded-md px-4 py-2">
+				<Link href="/" className="text-emerald-600 dark:text-emerald-400">
+					<div className="w-full max-w-52 flex justify-center items-center gap-2 text-sm border border-emerald-600 dark:border-emerald-400 rounded-md px-4 py-2">
 						<ArrowLeftIcon />
-						<p>Вернуться назад</p>
+						<p>Назад</p>
 					</div>
 				</Link>
+			</div>
+			<Suspense fallback={<Loader />}>
 				<PhraseSearch />
 			</Suspense>
 		</div>

@@ -18,8 +18,6 @@ export function ThemeToggle() {
 				return <Sun className="h-5 w-5" />;
 			case "dark":
 				return <Moon className="h-5 w-5" />;
-			case "system":
-				return <Monitor className="h-5 w-5" />;
 			default:
 				return <Monitor className="h-5 w-5" />;
 		}
@@ -31,8 +29,6 @@ export function ThemeToggle() {
 				return "Светлая тема";
 			case "dark":
 				return "Темная тема";
-			case "system":
-				return "Системная тема";
 			default:
 				return "Системная тема";
 		}
