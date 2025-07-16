@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default function SearchPage() {
 	return (
 		<div className="w-full h-full pb-[100px]">
-			<div className="px-4 py-6">
+			<div className="px-4 py-6 flex items-center justify-between">
 				<h1 className="text-2xl font-bold text-emerald-900 dark:text-emerald-100 mb-4 flex items-center gap-2">
 					Поиск фраз
 				</h1>
