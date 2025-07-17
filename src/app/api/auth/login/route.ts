@@ -36,11 +36,12 @@ export async function POST(req: Request) {
 		);
 
 		// Создаем Magic Link
-		const magicLink = `${process.env.NEXT_PUBLIC_APP_URL}/auth/verify?token=${magicToken}`;
+		const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+		const magicLink = `${baseUrl}/auth/verify?token=${magicToken}`;
 
 		// Отправляем email с Magic Link
 		const { error } = await resend.emails.send({
-			from: "onboarding@resend.dev", // Тестовый домен Resend
+			from: "noreply@ingphrasebook.ru",
 			to: email,
 			subject: "Вход в приложение",
 			html: `
