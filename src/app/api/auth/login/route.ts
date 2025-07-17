@@ -40,7 +40,7 @@ export async function POST(req: Request) {
 
 		// Отправляем email с Magic Link
 		const { error } = await resend.emails.send({
-			from: "noreply@yourdomain.com", // Замените на ваш домен
+			from: "onboarding@resend.dev", // Тестовый домен Resend
 			to: email,
 			subject: "Вход в приложение",
 			html: `
