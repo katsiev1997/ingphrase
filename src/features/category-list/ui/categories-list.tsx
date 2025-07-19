@@ -2,13 +2,13 @@
 
 import { useGetCategories } from "@/entities/category/ui/model/queries/use-get-categories";
 import { CategoryCard } from "@/entities/phrase/ui/category-card";
-import { Loader } from "@/shared/ui/loader";
+import { CategoriesSkeleton } from "@/shared/ui/categories-skeleton";
 
 export const CategoriesList = () => {
 	const { data, isPending } = useGetCategories();
 
 	if (isPending) {
-		return <Loader />;
+		return <CategoriesSkeleton />;
 	}
 
 	return (

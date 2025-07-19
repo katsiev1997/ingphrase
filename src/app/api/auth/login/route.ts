@@ -36,8 +36,7 @@ export async function POST(req: Request) {
 		);
 
 		// Создаем Magic Link
-		const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-		const magicLink = `${baseUrl}/auth/verify?token=${magicToken}`;
+		const magicLink = `https://ingphrasebook.ru/auth/verify?token=${magicToken}`;
 
 		// Отправляем email с Magic Link
 		const { error } = await resend.emails.send({

@@ -3,8 +3,9 @@ import { Montserrat } from "next/font/google";
 import "./globals.css";
 
 import ReactQueryProvider from "@/shared/providers/react-query-provider";
+import { ThemeProvider } from "@/shared/providers/theme-provider";
 import { NavMenu } from "@/features/nav-menu";
-import { PageTransition } from "@/shared/ui";
+import { PageTransitionAutoAnimate, ThemeScript } from "@/shared/ui";
 
 const montserrat = Montserrat({
 	variable: "--font-geist-sans",
@@ -23,13 +24,18 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="ru">
+			<head>
+				<ThemeScript />
+			</head>
 			<body
 				className={`${montserrat.variable} min-h-screen bg-emerald-50 dark:bg-background dark:text-foreground`}
 			>
-				<ReactQueryProvider>
-					<PageTransition>{children}</PageTransition>
-					<NavMenu />
-				</ReactQueryProvider>
+				<ThemeProvider>
+					<ReactQueryProvider>
+						<PageTransitionAutoAnimate>{children}</PageTransitionAutoAnimate>
+						<NavMenu />
+					</ReactQueryProvider>
+				</ThemeProvider>
 			</body>
 		</html>
 	);

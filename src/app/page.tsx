@@ -5,7 +5,7 @@ import {
 	HydrationBoundary,
 	QueryClient,
 } from "@tanstack/react-query";
-import { Loader } from "@/shared/ui/loader";
+import { CategoriesSkeleton } from "@/shared/ui/categories-skeleton";
 import { Suspense } from "react";
 import type { Metadata } from "next";
 
@@ -32,7 +32,7 @@ export default async function Home() {
 						Выберите категорию
 					</h1>
 				</div>
-				<Suspense fallback={<Loader />}>
+				<Suspense fallback={<CategoriesSkeleton />}>
 					<CategoriesList />
 				</Suspense>
 			</div>

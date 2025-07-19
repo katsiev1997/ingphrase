@@ -2,6 +2,40 @@
 @tailwind components;
 @tailwind utilities;
 
+/* React Transition Group Styles */
+.slide-enter-right {
+	transform: translateX(100%);
+	opacity: 0;
+}
+
+.slide-enter-left {
+	transform: translateX(-100%);
+	opacity: 0;
+}
+
+.slide-enter-active {
+	transform: translateX(0);
+	opacity: 1;
+	transition: all 1000ms ease-in-out;
+}
+
+.slide-exit-left {
+	transform: translateX(-100%);
+	opacity: 0;
+	transition: all 1000ms ease-in-out;
+}
+
+.slide-exit-right {
+	transform: translateX(100%);
+	opacity: 0;
+	transition: all 1000ms ease-in-out;
+}
+
+.slide-exit-active {
+	transform: translateX(0);
+	opacity: 1;
+}
+
 :root {
 	--background: #ffffff;
 	--foreground: #171717;

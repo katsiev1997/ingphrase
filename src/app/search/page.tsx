@@ -20,7 +20,7 @@ export default function SearchPage() {
 				<Link href="/" className="text-emerald-600 dark:text-emerald-400">
 					<div className="w-full max-w-52 flex justify-center items-center gap-2 text-sm border border-emerald-600 dark:border-emerald-400 rounded-md px-4 py-2">
 						<ArrowLeftIcon />
-						<p>Назад</p>
+						<p>На главную</p>
 					</div>
 				</Link>
 			</div>

@@ -2,7 +2,7 @@
 
 import { PhraseCard } from "@/entities/category/ui/phrase-card";
 import { useGetPhrases } from "@/entities/phrase/model/queries/use-get-phrases";
-import { Loader } from "@/shared/ui/loader";
+import { PhrasesSkeleton } from "@/shared/ui/phrases-skeleton";
 import { useState } from "react";
 
 type Props = {
@@ -14,7 +14,7 @@ export const PhraseList = ({ categoryId }: Props) => {
 	const [openPhraseId, setOpenPhraseId] = useState<string | null>(null);
 
 	if (isPending) {
-		return <Loader />;
+		return <PhrasesSkeleton />;
 	}
 
 	return (

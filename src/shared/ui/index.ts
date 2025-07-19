@@ -1,3 +1,7 @@
 export { Loader } from "./loader";
 export { ThemeToggle } from "./theme-toggle";
-export { PageTransition } from "./page-transition";
+export { PageTransitionAutoAnimate } from "./page-transition-auto-animate";
+export { ThemeScript } from "./theme-script";
+export { Skeleton } from "./skeleton";
+export { CategoriesSkeleton } from "./categories-skeleton";
+export { PhrasesSkeleton } from "./phrases-skeleton";

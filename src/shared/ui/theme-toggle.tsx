@@ -1,10 +1,10 @@
 "use client";
 
 import { Moon, Sun, Monitor } from "lucide-react";
-import { useTheme } from "@/shared/hooks/use-theme";
+import { useTheme } from "@/shared/providers/theme-provider";
 
 export function ThemeToggle() {
-	const { theme, toggleTheme, mounted } = useTheme();
+	const { theme, resolvedTheme, toggleTheme, mounted } = useTheme();
 
 	if (!mounted) {
 		return (
@@ -18,6 +18,8 @@ export function ThemeToggle() {
 				return <Sun className="h-5 w-5" />;
 			case "dark":
 				return <Moon className="h-5 w-5" />;
+			case "system":
+				return <Monitor className="h-5 w-5" />;
 			default:
 				return <Monitor className="h-5 w-5" />;
 		}
@@ -29,6 +31,8 @@ export function ThemeToggle() {
 				return "Светлая тема";
 			case "dark":
 				return "Темная тема";
+			case "system":
+				return `Системная тема (${resolvedTheme === "dark" ? "темная" : "светлая"})`;
 			default:
 				return "Системная тема";
 		}

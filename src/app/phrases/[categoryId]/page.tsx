@@ -4,7 +4,8 @@ import Link from "next/link";
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { getCategoriesRequest } from "@/entities/category/ui/model/api/get-categories-request";
-import { Loader } from "@/shared/ui/loader";
+import { PhrasesSkeleton } from "@/shared/ui/phrases-skeleton";
+import { QueryClient } from "@tanstack/react-query";
 
 type Props = {
 	params: Promise<{
@@ -21,9 +22,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 		return {
 			title: category ? `${category.name} | IngPhrase` : "Фразы | IngPhrase",
-			description: category
-				? `Фразы категории "${category.name}" на ингушском языке`
-				: "Фразы на ингушском языке",
+			description:
+				category ?
+					`Фразы категории "${category.name}" на ингушском языке`
+				:	"Фразы на ингушском языке",
 		};
 	} catch {
 		return {
@@ -34,19 +36,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function PhrasesPage({ params }: Props) {
-	const categoryId = parseInt((await params).categoryId);
+	const categoryId = (await params).categoryId;
 
-	// Получаем название категории для заголовка
-	let categoryName = "Фразы";
-	try {
-		const categories = await getCategoriesRequest();
-		const category = categories.find((cat) => cat.id === categoryId);
-		if (category) {
-			categoryName = category.name;
-		}
-	} catch (error) {
-		console.error("Ошибка при получении названия категории:", error);
-	}
+	const queryClient = new QueryClient();
+
+	const categoryName = await queryClient
+		.fetchQuery({
+			queryKey: ["categories"],
+			queryFn: () => getCategoriesRequest(),
+		})
+		.then((categories) => {
+			const category = categories.find((cat) => cat.id === Number(categoryId));
+			return category?.name;
+		});
 
 	return (
 		<div className="w-full h-full pb-[100px]">
@@ -61,8 +63,8 @@ export default async function PhrasesPage({ params }: Props) {
 					</div>
 				</Link>
 			</div>
-			<Suspense fallback={<Loader />}>
-				<PhraseList categoryId={String(categoryId)} />
+			<Suspense fallback={<PhrasesSkeleton />}>
+				<PhraseList categoryId={categoryId} />
 			</Suspense>
 		</div>
 	);
