@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { ThemeToggle } from "@/shared/ui/theme-toggle";
 import { User, Bell, Shield, HelpCircle, LogOut, LogIn } from "lucide-react";
 import Link from "next/link";
+import { api } from "@/shared/api";
 
 interface UserData {
 	id: number;
@@ -11,18 +12,24 @@ interface UserData {
 	role: string;
 }
 
+interface UserData {
+	id: number;
+	email: string;
+	role: string;
+}
+
+interface AuthResponse {
+	authenticated: boolean;
+	user: UserData | null;
+}
+
 export default function ProfilePage() {
 	const [user, setUser] = useState<UserData | null>(null);
 	const [loading, setLoading] = useState(true);
 
-	useEffect(() => {
-		checkAuth();
-	}, []);
-
 	const checkAuth = async () => {
 		try {
-			const response = await fetch("/api/auth");
-			const data = await response.json();
+			const { data } = await api.get<AuthResponse>("/auth");
 
 			if (data.authenticated && data.user) {
 				setUser(data.user);
@@ -36,10 +43,8 @@ export default function ProfilePage() {
 
 	const handleLogout = async () => {
 		try {
-			const response = await fetch("/api/auth/logout", {
-				method: "POST",
-			});
-			if (response.ok) {
+			const response = await api.post("/auth/logout");
+			if (response.status === 200) {
 				setUser(null);
 				window.location.href = "/";
 			}
@@ -47,6 +52,10 @@ export default function ProfilePage() {
 			console.error("Ошибка при выходе:", error);
 		}
 	};
+
+	useEffect(() => {
+		checkAuth();
+	}, []);
 
 	if (loading) {
 		return (
