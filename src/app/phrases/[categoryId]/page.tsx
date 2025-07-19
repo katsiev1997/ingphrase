@@ -54,7 +54,7 @@ export default async function PhrasesPage({ params }: Props) {
 		<div className="w-full h-full pb-[100px]">
 			<div className="px-4 py-6 flex items-center justify-between">
 				<h1 className="text-2xl font-bold text-emerald-900 dark:text-emerald-100 mb-4">
-					{categoryName}
+					{categoryName || "Фразы"}
 				</h1>
 				<Link href="/" className="text-emerald-600 dark:text-emerald-400">
 					<div className="w-full max-w-52 flex justify-center items-center gap-2 text-sm border border-emerald-600 dark:border-emerald-400 rounded-md px-4 py-2">
