@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
 import { sign } from "jsonwebtoken";
+import { cookies } from "next/headers";
 import { prisma } from "../../../../../prisma/prisma-client";
-import { Resend } from "resend";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: Request) {
 	try {
@@ -24,51 +22,32 @@ export async function POST(req: Request) {
 			});
 		}
 
-		// Создаем временный токен для Magic Link (действует 15 минут)
-		const magicToken = sign(
+		// Создаем JWT токен для авторизации
+		const token = sign(
 			{
 				userId: user.id,
 				email: user.email,
-				type: "magic-link",
 			},
 			process.env.JWT_SECRET || "fallback-secret",
-			{ expiresIn: "15m" }
+			{ expiresIn: "14d" }
 		);
 
-		// Создаем Magic Link
-		const magicLink = `https://ingphrasebook.ru/auth/verify?token=${magicToken}`;
-
-		// Отправляем email с Magic Link
-		const { error } = await resend.emails.send({
-			from: "noreply@ingphrasebook.ru",
-			to: email,
-			subject: "Вход в приложение",
-			html: `
-				<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-					<h2>Добро пожаловать!</h2>
-					<p>Для входа в приложение перейдите по ссылке ниже:</p>
-					<a href="${magicLink}" 
-					   style="display: inline-block; background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0;">
-						Войти в приложение
-					</a>
-					<p style="color: #666; font-size: 14px;">
-						Эта ссылка действительна в течение 15 минут. Если вы не запрашивали вход, проигнорируйте это письмо.
-					</p>
-				</div>
-			`,
+		// Устанавливаем куки с токеном
+		(await cookies()).set("token", token, {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === "production",
+			sameSite: "strict",
+			maxAge: 60 * 60 * 24 * 14, // 14 дней
 		});
-
-		if (error) {
-			console.error("Email sending error:", error);
-			return NextResponse.json(
-				{ error: "Failed to send email" },
-				{ status: 500 }
-			);
-		}
 
 		return NextResponse.json({
 			success: true,
-			message: "Magic link sent to your email",
+			message: "Authentication successful",
+			user: {
+				id: user.id,
+				email: user.email,
+				role: user.role,
+			},
 		});
 	} catch (error) {
 		console.error("Login error:", error);

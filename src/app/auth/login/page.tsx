@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Mail, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/shared/hooks/use-auth";
 
 export default function LoginPage() {
 	const [email, setEmail] = useState("");
@@ -10,6 +11,7 @@ export default function LoginPage() {
 		"idle" | "loading" | "success" | "error"
 	>("idle");
 	const [message, setMessage] = useState("");
+	const { user, loading } = useAuth();
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -36,16 +38,65 @@ export default function LoginPage() {
 
 			if (response.ok) {
 				setStatus("success");
-				setMessage("Ссылка для входа отправлена на ваш email!");
+				setMessage("Успешная авторизация!");
+				// Перенаправляем на главную страницу через 1 секунду
+				setTimeout(() => {
+					window.location.href = "/";
+				}, 1000);
 			} else {
 				setStatus("error");
-				setMessage(data.error || "Произошла ошибка при отправке");
+				setMessage(data.error || "Произошла ошибка при авторизации");
 			}
 		} catch {
 			setStatus("error");
 			setMessage("Произошла ошибка при отправке запроса");
 		}
 	};
+
+	if (loading) {
+		return (
+			<div className="min-h-screen flex items-center justify-center bg-emerald-50 dark:bg-emerald-950 px-4">
+				<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+			</div>
+		);
+	}
+
+	// Если пользователь уже авторизован, показываем сообщение об успешной авторизации
+	if (user) {
+		return (
+			<div className="min-h-screen flex items-center justify-center bg-emerald-50 dark:bg-emerald-950 px-4">
+				<div className="max-w-md w-full space-y-8">
+					{/* Кнопка назад */}
+					<Link
+						href="/"
+						className="inline-flex items-center gap-2 text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-200 transition-colors"
+					>
+						<ArrowLeft className="h-4 w-4" />
+						Назад
+					</Link>
+
+					{/* Сообщение об авторизации */}
+					<div className="bg-white dark:bg-emerald-900 rounded-lg shadow-md p-8">
+						<div className="text-center">
+							<div className="text-green-500 text-6xl mb-4">✓</div>
+							<h3 className="text-lg font-semibold text-emerald-900 dark:text-emerald-100 mb-2">
+								Вы уже авторизованы!
+							</h3>
+							<p className="text-emerald-600 dark:text-emerald-400 mb-6">
+								Добро пожаловать, {user.email}
+							</p>
+							<Link
+								href="/"
+								className="inline-block bg-emerald-600 text-white py-3 px-6 rounded-lg hover:bg-emerald-700 transition-colors"
+							>
+								Перейти на главную
+							</Link>
+						</div>
+					</div>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div className="min-h-screen flex items-center justify-center bg-emerald-50 dark:bg-emerald-950 px-4">
@@ -69,7 +120,7 @@ export default function LoginPage() {
 							Вход в приложение
 						</h2>
 						<p className="text-sm text-emerald-600 dark:text-emerald-400 mt-2">
-							Введите ваш email для получения ссылки для входа
+							Введите ваш email для входа в приложение
 						</p>
 					</div>
 
@@ -77,21 +128,14 @@ export default function LoginPage() {
 						<div className="text-center">
 							<div className="text-green-500 text-6xl mb-4">✓</div>
 							<h3 className="text-lg font-semibold text-emerald-900 dark:text-emerald-100 mb-2">
-								Проверьте ваш email!
+								Успешная авторизация!
 							</h3>
 							<p className="text-emerald-600 dark:text-emerald-400 mb-6">
 								{message}
 							</p>
-							<button
-								onClick={() => {
-									setStatus("idle");
-									setEmail("");
-									setMessage("");
-								}}
-								className="w-full bg-emerald-600 text-white py-3 px-4 rounded-lg hover:bg-emerald-700 transition-colors"
-							>
-								Отправить еще раз
-							</button>
+							<p className="text-sm text-emerald-500 dark:text-emerald-400">
+								Перенаправление на главную страницу...
+							</p>
 						</div>
 					:	<form onSubmit={handleSubmit} className="space-y-6">
 							<div>
@@ -126,11 +170,11 @@ export default function LoginPage() {
 								{status === "loading" ?
 									<>
 										<div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-										Отправка...
+										Вход...
 									</>
 								:	<>
 										<Mail className="h-5 w-5" />
-										Отправить ссылку для входа
+										Войти в приложение
 									</>
 								}
 							</button>
@@ -139,7 +183,7 @@ export default function LoginPage() {
 
 					<div className="mt-6 text-center">
 						<p className="text-xs text-emerald-500 dark:text-emerald-400">
-							Ссылка для входа действительна в течение 15 минут
+							Введите ваш email для входа в приложение
 						</p>
 					</div>
 				</div>

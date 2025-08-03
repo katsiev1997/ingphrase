@@ -41,12 +41,16 @@ export const NavMenu = () => {
 		<nav className="flex items-center justify-around fixed bottom-0 left-0 right-0 h-20 pb-4 border-t border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950">
 			{NavMenuItems.map(({ href, Icon }) => (
 				<Link href={href} key={href}>
-					<Icon
-						className={`text-emerald-600 dark:text-emerald-400 ${
-							pathname === href ? "text-emerald-800 dark:text-emerald-200" : ""
-						}`}
-						strokeWidth={pathname === href ? 3 : 1.5}
-					/>
+					<div className="min-w-12 h-10 flex items-center justify-center">
+						<Icon
+							className={`text-emerald-600 dark:text-emerald-400 ${
+								pathname === href ?
+									"text-emerald-800 dark:text-emerald-200"
+								:	""
+							}`}
+							strokeWidth={pathname === href ? 3 : 1.5}
+						/>
+					</div>
 				</Link>
 			))}
 		</nav>

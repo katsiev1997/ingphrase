@@ -29,11 +29,6 @@ export default async function Home() {
 	return (
 		<HydrationBoundary state={dehydratedState}>
 			<div className="w-full h-full pb-[100px]">
-				<div className="px-4 py-6">
-					<h1 className="text-2xl font-bold text-emerald-900 dark:text-emerald-100 mb-4">
-						Выберите категорию
-					</h1>
-				</div>
 				<Suspense fallback={<CategoriesSkeleton />}>
 					<CategoriesList />
 				</Suspense>
