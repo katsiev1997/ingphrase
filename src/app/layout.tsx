@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Montserrat } from "next/font/google";
 import "./globals.css";
 
@@ -15,6 +15,13 @@ const montserrat = Montserrat({
 export const metadata: Metadata = {
 	title: "IngPhrase",
 	description: "Ingush-Russian phrasebook",
+};
+
+export const viewport: Viewport = {
+	themeColor: "#000000",
+	initialScale: 1,
+	maximumScale: 1,
+	userScalable: false,
 };
 
 export default function RootLayout({

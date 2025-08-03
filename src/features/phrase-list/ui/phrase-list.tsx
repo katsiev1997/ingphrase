@@ -3,6 +3,7 @@
 import { PhraseCard } from "@/entities/category/ui/phrase-card";
 import { useGetPhrases } from "@/entities/phrase/model/queries/use-get-phrases";
 import { PhrasesSkeleton } from "@/shared/ui/phrases-skeleton";
+import { AddPhrase } from "@/features/add-phrase";
 import { useState } from "react";
 
 type Props = {
@@ -32,6 +33,9 @@ export const PhraseList = ({ categoryId }: Props) => {
 					}
 				/>
 			))}
+
+			{/* Компонент добавления фразы */}
+			<AddPhrase categoryId={categoryId} />
 		</div>
 	);
 };

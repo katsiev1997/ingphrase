@@ -1,5 +1,8 @@
+import { NextResponse } from "next/server";
+import { verify } from "jsonwebtoken";
+import { cookies } from "next/headers";
 import { prisma } from "../../../../prisma/prisma-client";
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 // GET /api/phrases
 export async function GET(req: NextRequest) {
@@ -8,7 +11,10 @@ export async function GET(req: NextRequest) {
 		const categoryId = searchParams.get("categoryId");
 
 		if (!categoryId) {
-			return NextResponse.json({ error: "Category not found" }, { status: 404 });
+			return NextResponse.json(
+				{ error: "Category not found" },
+				{ status: 404 }
+			);
 		}
 
 		const phrases = await prisma.phrase.findMany({
@@ -29,25 +35,86 @@ export async function GET(req: NextRequest) {
 // POST /api/phrases
 export async function POST(req: NextRequest) {
 	try {
-		const body = await req.json();
+		// Проверяем авторизацию
+		const token = (await cookies()).get("token");
 
-		const { title, translate, transcription, audioUrl, categoryId } = body;
+		if (!token) {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
 
-		const newPhrase = await prisma.phrase.create({
+		// Проверяем валидность токена
+		const decoded = verify(
+			token.value,
+			process.env.JWT_SECRET || "fallback-secret"
+		) as {
+			userId: string;
+		};
+
+		// Получаем информацию о пользователе
+		const user = await prisma.user.findUnique({
+			where: { id: Number(decoded.userId) },
+			select: {
+				id: true,
+				email: true,
+				role: true,
+			},
+		});
+
+		if (!user) {
+			return NextResponse.json({ error: "User not found" }, { status: 401 });
+		}
+
+		// Проверяем права доступа (только MODERATOR и ADMIN)
+		if (user.role !== "MODERATOR" && user.role !== "ADMIN") {
+			return NextResponse.json(
+				{ error: "Insufficient permissions" },
+				{ status: 403 }
+			);
+		}
+
+		// Получаем данные из запроса
+		const { title, translate, transcription, categoryId } = await req.json();
+
+		// Валидация данных
+		if (!title || !translate || !transcription || !categoryId) {
+			return NextResponse.json(
+				{ error: "All fields are required" },
+				{ status: 400 }
+			);
+		}
+
+		// Проверяем существование категории
+		const category = await prisma.category.findUnique({
+			where: { id: Number(categoryId) },
+		});
+
+		if (!category) {
+			return NextResponse.json(
+				{ error: "Category not found" },
+				{ status: 404 }
+			);
+		}
+
+		// Создаем новую фразу
+		const phrase = await prisma.phrase.create({
 			data: {
 				title,
 				translate,
 				transcription,
-				audioUrl, // Поле может быть пустым (optional)
-				category: {
-					connect: { id: Number(categoryId) }, // Подключаем категорию через внешний ключ
-				},
+				categoryId: Number(categoryId),
 			},
 		});
 
-		return NextResponse.json(newPhrase, { status: 201 });
+		return NextResponse.json({
+			success: true,
+			phrase,
+		});
 	} catch (error) {
-		return NextResponse.json({ error }, { status: 500 });
+		console.error("Create phrase error:", error);
+		return NextResponse.json(
+			{ error: "Internal server error" },
+			{ status: 500 }
+		);
 	}
 }
 
@@ -83,14 +150,20 @@ export async function DELETE(req: NextRequest) {
 		const phraseId = searchParams.get("id");
 
 		if (!phraseId) {
-			return NextResponse.json({ error: "Phrase ID is required" }, { status: 400 });
+			return NextResponse.json(
+				{ error: "Phrase ID is required" },
+				{ status: 400 }
+			);
 		}
 
 		await prisma.phrase.delete({
 			where: { id: Number(phraseId) },
 		});
 
-		return NextResponse.json({ message: "Phrase deleted successfully" }, { status: 200 });
+		return NextResponse.json(
+			{ message: "Phrase deleted successfully" },
+			{ status: 200 }
+		);
 	} catch (error) {
 		return NextResponse.json({ error }, { status: 500 });
 	}
