@@ -21,6 +21,9 @@ export async function GET(req: NextRequest) {
 
 		const phrases = await prisma.phrase.findMany({
 			where: { categoryId: Number(categoryId) },
+			orderBy: {
+				title: "asc",
+			},
 		});
 
 		// Проверяем длину массива фраз
