@@ -9,6 +9,8 @@ import { CategoriesSkeleton } from "@/shared/ui/categories-skeleton";
 import { Suspense } from "react";
 import type { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
 	title: "Категории фраз | IngPhrase",
 	description: "Выберите категорию фраз для изучения ингушского языка",
@@ -17,7 +19,7 @@ export const metadata: Metadata = {
 export default async function Home() {
 	const queryClient = new QueryClient();
 
-	await queryClient.prefetchQuery({
+	await queryClient.fetchQuery({
 		queryKey: ["categories"],
 		queryFn: () => getCategoriesRequest(),
 	});

@@ -6,6 +6,8 @@ import type { Metadata } from "next";
 import { getCategoriesRequest } from "@/entities/category/ui/model/api/get-categories-request";
 import { PhrasesSkeleton } from "@/shared/ui/phrases-skeleton";
 import { QueryClient } from "@tanstack/react-query";
+import { getPhrasesRequest } from "@/entities/phrase/model/api/get-phrases-request";
+import { CategoryTitle } from "@/entities/category/ui/category-title";
 
 type Props = {
 	params: Promise<{
@@ -40,22 +42,15 @@ export default async function PhrasesPage({ params }: Props) {
 
 	const queryClient = new QueryClient();
 
-	const categoryName = await queryClient
-		.fetchQuery({
-			queryKey: ["categories"],
-			queryFn: () => getCategoriesRequest(),
-		})
-		.then((categories) => {
-			const category = categories.find((cat) => cat.id === Number(categoryId));
-			return category?.name;
-		});
+	await queryClient.prefetchQuery({
+		queryKey: ["phrases", categoryId],
+		queryFn: () => getPhrasesRequest(Number(categoryId)),
+	});
 
 	return (
 		<div className="w-full h-full pb-[100px]">
 			<div className="px-4 py-6 flex items-center justify-between">
-				<h1 className="text-2xl font-bold text-emerald-900 dark:text-emerald-100 mb-4">
-					{categoryName || "Фразы"}
-				</h1>
+				<CategoryTitle categoryId={categoryId} />
 				<Link href="/" className="text-emerald-600 dark:text-emerald-400">
 					<div className="w-full max-w-52 flex justify-center items-center gap-2 text-sm border border-emerald-600 dark:border-emerald-400 rounded-md px-4 py-2">
 						<ArrowLeftIcon />
