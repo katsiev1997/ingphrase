@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
 		await writeFile(filePath, buffer);
 
 		// Обновляем фразу в базе данных
-		const audioUrl = `/uploads/audio/${fileName}`;
+		const audioUrl = `/api/audio/${fileName}`;
 		await prisma.phrase.update({
 			where: { id: Number(phraseId) },
 			data: { audioUrl },
