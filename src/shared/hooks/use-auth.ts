@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/shared/api";
 
 interface UserData {
@@ -13,30 +13,34 @@ interface AuthResponse {
 }
 
 export const useAuth = () => {
-	const [user, setUser] = useState<UserData | null>(null);
-	const [loading, setLoading] = useState(true);
+	const queryClient = useQueryClient();
 
-	const checkAuth = async () => {
-		try {
+	const {
+		data: authData,
+		isLoading,
+		error,
+		refetch,
+	} = useQuery({
+		queryKey: ["auth"],
+		queryFn: async (): Promise<AuthResponse> => {
 			const { data } = await api.get<AuthResponse>("/auth");
+			return data;
+		},
+		staleTime: 5 * 60 * 1000, // 5 минут
+		retry: 1,
+		refetchOnWindowFocus: false,
+	});
 
-			if (data.authenticated && data.user) {
-				setUser(data.user);
-			} else {
-				setUser(null);
-			}
-		} catch (error) {
-			console.error("Auth check error:", error);
-			setUser(null);
-		} finally {
-			setLoading(false);
-		}
-	};
+	const user = authData?.authenticated ? authData.user : null;
 
 	const logout = async () => {
 		try {
 			await api.post("/auth/logout");
-			setUser(null);
+			// Инвалидируем кеш аутентификации
+			queryClient.setQueryData(["auth"], {
+				authenticated: false,
+				user: null,
+			});
 		} catch (error) {
 			console.error("Logout error:", error);
 		}
@@ -46,16 +50,13 @@ export const useAuth = () => {
 		return user?.role === "ADMIN" || user?.role === "MODERATOR";
 	};
 
-	useEffect(() => {
-		checkAuth();
-	}, []);
-
 	return {
 		user,
-		loading,
+		loading: isLoading,
 		isAuthenticated: !!user,
 		isModeratorOrAdmin: isModeratorOrAdmin(),
-		refetch: checkAuth,
+		refetch,
 		logout,
+		error,
 	};
 };

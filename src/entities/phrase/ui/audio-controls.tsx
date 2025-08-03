@@ -46,7 +46,22 @@ export const AudioControls = ({ phraseId, audioUrl }: AudioControlsProps) => {
 	const startRecording = async () => {
 		try {
 			const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-			const mediaRecorder = new MediaRecorder(stream);
+
+			// Определяем поддерживаемый формат
+			let mimeType = "audio/webm;codecs=opus";
+			if (!MediaRecorder.isTypeSupported(mimeType)) {
+				mimeType = "audio/webm";
+			}
+			if (!MediaRecorder.isTypeSupported(mimeType)) {
+				mimeType = "audio/mp4";
+			}
+			if (!MediaRecorder.isTypeSupported(mimeType)) {
+				mimeType = "audio/wav";
+			}
+
+			const mediaRecorder = new MediaRecorder(stream, {
+				mimeType,
+			});
 			mediaRecorderRef.current = mediaRecorder;
 			chunksRef.current = [];
 
@@ -55,9 +70,12 @@ export const AudioControls = ({ phraseId, audioUrl }: AudioControlsProps) => {
 			};
 
 			mediaRecorder.onstop = async () => {
-				const audioBlob = new Blob(chunksRef.current, { type: "audio/wav" });
-				const audioFile = new File([audioBlob], "recording.wav", {
-					type: "audio/wav",
+				// Используем тот же MIME тип, что и при записи
+				const mimeType = mediaRecorder.mimeType || "audio/webm";
+				const audioBlob = new Blob(chunksRef.current, { type: mimeType });
+				const extension = mimeType.split("/")[1]?.split(";")[0] || "webm";
+				const audioFile = new File([audioBlob], `recording.${extension}`, {
+					type: mimeType,
 				});
 
 				try {

@@ -4,52 +4,29 @@ import { useState } from "react";
 import { Mail, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/shared/hooks/use-auth";
+import { useLogin } from "@/shared/hooks/use-login";
 
 export default function LoginPage() {
 	const [email, setEmail] = useState("");
-	const [status, setStatus] = useState<
-		"idle" | "loading" | "success" | "error"
-	>("idle");
-	const [message, setMessage] = useState("");
 	const { user, loading } = useAuth();
+	const loginMutation = useLogin();
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 
 		if (!email) {
-			setStatus("error");
-			setMessage("Пожалуйста, введите email");
 			return;
 		}
 
-		setStatus("loading");
-		setMessage("");
-
 		try {
-			const response = await fetch("/api/auth/login", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({ email }),
-			});
-
-			const data = await response.json();
-
-			if (response.ok) {
-				setStatus("success");
-				setMessage("Успешная авторизация!");
-				// Перенаправляем на главную страницу через 1 секунду
-				setTimeout(() => {
-					window.location.href = "/";
-				}, 1000);
-			} else {
-				setStatus("error");
-				setMessage(data.error || "Произошла ошибка при авторизации");
-			}
-		} catch {
-			setStatus("error");
-			setMessage("Произошла ошибка при отправке запроса");
+			await loginMutation.mutateAsync({ email });
+			// Перенаправляем на главную страницу через 1 секунду
+			setTimeout(() => {
+				window.location.href = "/";
+			}, 1000);
+		} catch (error) {
+			// Ошибка обрабатывается автоматически через React Query
+			console.error("Login error:", error);
 		}
 	};
 
@@ -124,14 +101,14 @@ export default function LoginPage() {
 						</p>
 					</div>
 
-					{status === "success" ?
+					{loginMutation.isSuccess ?
 						<div className="text-center">
 							<div className="text-green-500 text-6xl mb-4">✓</div>
 							<h3 className="text-lg font-semibold text-emerald-900 dark:text-emerald-100 mb-2">
 								Успешная авторизация!
 							</h3>
 							<p className="text-emerald-600 dark:text-emerald-400 mb-6">
-								{message}
+								{loginMutation.data?.message || "Успешная авторизация!"}
 							</p>
 							<p className="text-sm text-emerald-500 dark:text-emerald-400">
 								Перенаправление на главную страницу...
@@ -152,22 +129,23 @@ export default function LoginPage() {
 									onChange={(e) => setEmail(e.target.value)}
 									placeholder="your@email.com"
 									className="w-full px-4 py-3 border border-emerald-300 dark:border-emerald-700 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white dark:bg-emerald-800 text-emerald-900 dark:text-emerald-100 placeholder-emerald-500 dark:placeholder-emerald-400"
-									disabled={status === "loading"}
+									disabled={loginMutation.isPending}
 								/>
 							</div>
 
-							{status === "error" && (
+							{loginMutation.isError && (
 								<div className="text-red-600 dark:text-red-400 text-sm text-center">
-									{message}
+									{loginMutation.error?.message ||
+										"Произошла ошибка при авторизации"}
 								</div>
 							)}
 
 							<button
 								type="submit"
-								disabled={status === "loading"}
+								disabled={loginMutation.isPending}
 								className="w-full bg-emerald-600 text-white py-3 px-4 rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
 							>
-								{status === "loading" ?
+								{loginMutation.isPending ?
 									<>
 										<div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
 										Вход...
