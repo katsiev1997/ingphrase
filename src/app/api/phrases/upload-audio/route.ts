@@ -1,13 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../../prisma/prisma-client";
 import type { NextRequest } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
-import { existsSync } from "fs";
+import { put } from "@vercel/blob";
 import {
 	checkModeratorAuth,
 	createAuthErrorResponse,
-} from "../../../../lib/auth-utils";
+} from "@/shared/lib/auth-utils";
 
 export async function POST(req: NextRequest) {
 	try {
@@ -54,32 +52,25 @@ export async function POST(req: NextRequest) {
 			);
 		}
 
-		// Создаем директорию для аудио файлов если её нет
-		const uploadDir = join(process.cwd(), "public", "uploads", "audio");
-		if (!existsSync(uploadDir)) {
-			await mkdir(uploadDir, { recursive: true });
-		}
-
 		// Генерируем уникальное имя файла
 		const fileExtension = audioFile.name.split(".").pop();
 		const fileName = `phrase_${phraseId}_${Date.now()}.${fileExtension}`;
-		const filePath = join(uploadDir, fileName);
 
-		// Сохраняем файл
-		const bytes = await audioFile.arrayBuffer();
-		const buffer = Buffer.from(bytes);
-		await writeFile(filePath, buffer);
+		// Загружаем файл в Vercel Blob Storage
+		const { url } = await put(fileName, audioFile, {
+			access: "public",
+			addRandomSuffix: false,
+		});
 
 		// Обновляем фразу в базе данных
-		const audioUrl = `/api/audio/${fileName}`;
 		await prisma.phrase.update({
 			where: { id: Number(phraseId) },
-			data: { audioUrl },
+			data: { audioUrl: url },
 		});
 
 		return NextResponse.json({
 			success: true,
-			audioUrl,
+			audioUrl: url,
 		});
 	} catch (error) {
 		console.error("Upload audio error:", error);

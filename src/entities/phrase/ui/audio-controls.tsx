@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Upload, Trash2, Mic, X } from "lucide-react";
+import { Upload, Trash2, Mic, X, Loader2Icon } from "lucide-react";
 import { useUploadAudio } from "../model/mutations/use-upload-audio";
 import { useDeleteAudio } from "../model/mutations/use-delete-audio";
 import { useAuth } from "@/shared/hooks/use-auth";
@@ -122,8 +122,13 @@ export const AudioControls = ({ phraseId, audioUrl }: AudioControlsProps) => {
 								className="flex-1 flex items-center justify-center py-2 px-4 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors"
 								disabled={uploadAudio.isPending || deleteAudio.isPending}
 							>
-								<Trash2 className="h-5 w-5 mr-2" />
-								Удалить аудио
+								{deleteAudio.isPending ?
+									<Loader2Icon className="animate-spin" />
+								:	<>
+										<Trash2 className="h-5 w-5 mr-2" />
+										Удалить аудио
+									</>
+								}
 							</button>
 						</div>
 					)}
@@ -137,8 +142,13 @@ export const AudioControls = ({ phraseId, audioUrl }: AudioControlsProps) => {
 									className="flex-1 flex items-center justify-center py-2 px-4 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
 									disabled={uploadAudio.isPending}
 								>
-									<Upload className="h-5 w-5 mr-2" />
-									Загрузить
+									{uploadAudio.isPending ?
+										<Loader2Icon className="animate-spin" />
+									:	<>
+											<Upload className="h-5 w-5 mr-2" />
+											Загрузить
+										</>
+									}
 								</button>
 								<button
 									onClick={isRecording ? stopRecording : startRecording}
@@ -179,10 +189,6 @@ export const AudioControls = ({ phraseId, audioUrl }: AudioControlsProps) => {
 					</div>
 				)
 			}
-
-			{(uploadAudio.isPending || deleteAudio.isPending) && (
-				<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-600"></div>
-			)}
 		</div>
 	);
 };

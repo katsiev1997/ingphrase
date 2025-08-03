@@ -1,13 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../../prisma/prisma-client";
 import type { NextRequest } from "next/server";
-import { unlink } from "fs/promises";
-import { join } from "path";
-import { existsSync } from "fs";
+import { del } from "@vercel/blob";
 import {
 	checkModeratorAuth,
 	createAuthErrorResponse,
-} from "../../../../lib/auth-utils";
+} from "../../../../shared/lib/auth-utils";
 
 export async function DELETE(req: NextRequest) {
 	try {
@@ -44,10 +42,14 @@ export async function DELETE(req: NextRequest) {
 			);
 		}
 
-		// Удаляем файл с сервера
-		const filePath = join(process.cwd(), "public", phrase.audioUrl);
-		if (existsSync(filePath)) {
-			await unlink(filePath);
+		// Удаляем файл из Vercel Blob Storage
+		if (phrase.audioUrl) {
+			try {
+				await del(phrase.audioUrl);
+			} catch (error) {
+				console.error("Error deleting blob:", error);
+				// Продолжаем выполнение даже если файл не найден в blob storage
+			}
 		}
 
 		// Обновляем фразу в базе данных

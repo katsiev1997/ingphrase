@@ -4,7 +4,7 @@ import type { NextRequest } from "next/server";
 import {
 	checkModeratorAuth,
 	createAuthErrorResponse,
-} from "../../../lib/auth-utils";
+} from "../../../shared/lib/auth-utils";
 
 // GET /api/phrases
 export async function GET(req: NextRequest) {
