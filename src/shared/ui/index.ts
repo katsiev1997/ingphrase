@@ -5,3 +5,4 @@ export { ThemeScript } from "./theme-script";
 export { Skeleton } from "./skeleton";
 export { CategoriesSkeleton } from "./categories-skeleton";
 export { PhrasesSkeleton } from "./phrases-skeleton";
+export { ServiceWorkerRegister } from "./sw-register";

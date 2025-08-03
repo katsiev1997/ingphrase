@@ -7,8 +7,10 @@ export default function manifest(): MetadataRoute.Manifest {
 		description: "Ingush-Russian phrasebook",
 		start_url: "/",
 		display: "standalone",
-		background_color: "#fff",
-		theme_color: "#fff",
+		background_color: "#ffffff",
+		theme_color: "#000000",
+		orientation: "portrait",
+		scope: "/",
 		icons: [
 			{
 				src: "/favicon.ico",
@@ -16,5 +18,7 @@ export default function manifest(): MetadataRoute.Manifest {
 				type: "image/x-icon",
 			},
 		],
+		categories: ["education", "utilities"],
+		lang: "ru",
 	};
 }

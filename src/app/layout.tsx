@@ -5,7 +5,11 @@ import "./globals.css";
 import ReactQueryProvider from "@/shared/providers/react-query-provider";
 import { ThemeProvider } from "@/shared/providers/theme-provider";
 import { NavMenu } from "@/features/nav-menu";
-import { PageTransitionAutoAnimate, ThemeScript } from "@/shared/ui";
+import {
+	PageTransitionAutoAnimate,
+	ThemeScript,
+	ServiceWorkerRegister,
+} from "@/shared/ui";
 import Script from "next/script";
 
 const montserrat = Montserrat({
@@ -44,6 +48,7 @@ export default function RootLayout({
 					<ReactQueryProvider>
 						<PageTransitionAutoAnimate>{children}</PageTransitionAutoAnimate>
 						<NavMenu />
+						<ServiceWorkerRegister />
 					</ReactQueryProvider>
 				</ThemeProvider>
 				{isProduction && (
