@@ -1,5 +1,8 @@
 import React from "react";
 import type { Metadata } from "next";
+import { DialogueList } from "@/features/dialogue-list";
+import { AddDialogue } from "@/features/add-dialogue";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
 	title: "Диалоги | IngPhrase",
@@ -14,11 +17,13 @@ export default function DialogsPage() {
 					Диалоги
 				</h1>
 			</div>
-			<div className="px-4">
-				<p className="text-emerald-600 dark:text-emerald-400">
-					Здесь будут отображаться диалоги на ингушском языке
-				</p>
-			</div>
+
+			<Suspense fallback={<div>Загрузка...</div>}>
+				<DialogueList />
+			</Suspense>
+
+			{/* Компонент добавления диалога */}
+			<AddDialogue />
 		</div>
 	);
 }
