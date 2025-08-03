@@ -47,13 +47,13 @@ export const AudioControls = ({ phraseId, audioUrl }: AudioControlsProps) => {
 		try {
 			const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-			// Определяем поддерживаемый формат
-			let mimeType = "audio/webm;codecs=opus";
+			// Определяем поддерживаемый формат (приоритет для iOS совместимости)
+			let mimeType = "audio/mp4";
 			if (!MediaRecorder.isTypeSupported(mimeType)) {
-				mimeType = "audio/webm";
+				mimeType = "audio/webm;codecs=opus";
 			}
 			if (!MediaRecorder.isTypeSupported(mimeType)) {
-				mimeType = "audio/mp4";
+				mimeType = "audio/webm";
 			}
 			if (!MediaRecorder.isTypeSupported(mimeType)) {
 				mimeType = "audio/wav";
