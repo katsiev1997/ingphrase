@@ -27,6 +27,7 @@ export const PhraseList = ({ categoryId }: Props) => {
 					phrase={phrase.title}
 					translation={phrase.translate}
 					transcription={phrase.transcription}
+					audioUrl={phrase.audioUrl || undefined}
 					isOpen={openPhraseId === String(phrase.id)}
 					setOpen={(isOpen) =>
 						setOpenPhraseId(isOpen ? String(phrase.id) : null)

@@ -2,12 +2,14 @@
 
 import { PlusIcon } from "lucide-react";
 import { useRef } from "react";
+import { AudioControls } from "@/entities/phrase/ui/audio-controls";
 
 type PhraseCardProps = {
 	phrase: string;
 	translation: string;
 	transcription: string;
 	id: string;
+	audioUrl?: string;
 	className?: string;
 	isOpen: boolean;
 	setOpen: (isOpen: boolean) => void;
@@ -17,6 +19,7 @@ export function PhraseCard({
 	phrase,
 	translation,
 	transcription,
+	audioUrl,
 	className,
 	id,
 	isOpen,
@@ -56,12 +59,15 @@ export function PhraseCard({
 				}`}
 			>
 				<div className="p-4 bg-emerald-50 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-200">
-					<p className="font-semibold">
-						Перевод: <span className="font-normal">{translation}</span>
-					</p>
+					<div className="flex items-center justify-between mb-3">
+						<p className="font-semibold">
+							Перевод: <span className="font-normal">{translation}</span>
+						</p>
+					</div>
 					<p className="font-semibold">
 						Транскрипция: <span className="font-normal">{transcription}</span>
 					</p>
+					<AudioControls phraseId={id} audioUrl={audioUrl} />
 				</div>
 			</div>
 		</div>

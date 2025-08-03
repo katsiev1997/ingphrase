@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
-import { verify } from "jsonwebtoken";
-import { cookies } from "next/headers";
 import { prisma } from "../../../../prisma/prisma-client";
 import type { NextRequest } from "next/server";
+import {
+	checkModeratorAuth,
+	createAuthErrorResponse,
+} from "../../../lib/auth-utils";
 
 // GET /api/dialogs
 export async function GET() {
@@ -29,41 +31,10 @@ export async function GET() {
 // POST /api/dialogs
 export async function POST(req: NextRequest) {
 	try {
-		// Проверяем авторизацию
-		const token = (await cookies()).get("token");
-
-		if (!token) {
-			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-		}
-
-		// Проверяем валидность токена
-		const decoded = verify(
-			token.value,
-			process.env.JWT_SECRET || "fallback-secret"
-		) as {
-			userId: string;
-		};
-
-		// Получаем информацию о пользователе
-		const user = await prisma.user.findUnique({
-			where: { id: Number(decoded.userId) },
-			select: {
-				id: true,
-				email: true,
-				role: true,
-			},
-		});
-
-		if (!user) {
-			return NextResponse.json({ error: "User not found" }, { status: 401 });
-		}
-
-		// Проверяем права доступа (только MODERATOR и ADMIN)
-		if (user.role !== "MODERATOR" && user.role !== "ADMIN") {
-			return NextResponse.json(
-				{ error: "Insufficient permissions" },
-				{ status: 403 }
-			);
+		// Проверяем авторизацию и права доступа
+		const authResult = await checkModeratorAuth();
+		if (!authResult.success) {
+			return createAuthErrorResponse(authResult);
 		}
 
 		// Получаем данные из запроса
