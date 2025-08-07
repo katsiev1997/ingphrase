@@ -42,7 +42,7 @@ export default async function PhrasesPage({ params }: Props) {
 
 	const queryClient = new QueryClient();
 
-	await queryClient.prefetchQuery({
+	queryClient.prefetchQuery({
 		queryKey: ["phrases", categoryId],
 		queryFn: () => getPhrasesRequest(Number(categoryId)),
 	});
