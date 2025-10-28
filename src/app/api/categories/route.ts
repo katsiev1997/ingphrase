@@ -1,14 +1,16 @@
-import { NextResponse } from "next/server";
-import { verify } from "jsonwebtoken";
-import { cookies } from "next/headers";
-import { prisma } from "../../../../prisma/prisma-client";
+import { NextResponse } from 'next/server';
+import { verify } from 'jsonwebtoken';
+import { cookies } from 'next/headers';
+import { categories, users } from '../../../db/schema';
+import { eq } from 'drizzle-orm';
+import { db } from '@/db/drizzle';
 
 // GET /api/categories
 export async function GET() {
 	try {
-		const categories = await prisma.category.findMany();
+		const categoriesList = await db.select().from(categories);
 
-		return NextResponse.json(categories);
+		return NextResponse.json(categoriesList);
 	} catch (error) {
 		return NextResponse.json({ error }, { status: 500 });
 	}
@@ -18,41 +20,41 @@ export async function GET() {
 export async function POST(req: Request) {
 	try {
 		// Проверяем авторизацию
-		const token = (await cookies()).get("token");
+		const token = (await cookies()).get('token');
 
 		if (!token) {
-			return NextResponse.json(
-				{ error: "Unauthorized" },
-				{ status: 401 }
-			);
+			return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 		}
 
 		// Проверяем валидность токена
-		const decoded = verify(token.value, process.env.JWT_SECRET || "fallback-secret") as {
+		const decoded = verify(
+			token.value,
+			process.env.JWT_SECRET || 'fallback-secret'
+		) as {
 			userId: string;
 		};
 
 		// Получаем информацию о пользователе
-		const user = await prisma.user.findUnique({
-			where: { id: Number(decoded.userId) },
-			select: {
-				id: true,
-				email: true,
-				role: true,
-			},
-		});
+		const user = await db
+			.select({
+				id: users.id,
+				email: users.email,
+				role: users.role,
+			})
+			.from(users)
+			.where(eq(users.id, Number(decoded.userId)))
+			.limit(1);
 
-		if (!user) {
-			return NextResponse.json(
-				{ error: "User not found" },
-				{ status: 401 }
-			);
+		if (user.length === 0) {
+			return NextResponse.json({ error: 'User not found' }, { status: 401 });
 		}
 
+		const userData = user[0];
+
 		// Проверяем роль пользователя
-		if (user.role !== "ADMIN" && user.role !== "MODERATOR") {
+		if (userData.role !== 'ADMIN' && userData.role !== 'MODERATOR') {
 			return NextResponse.json(
-				{ error: "Insufficient permissions" },
+				{ error: 'Insufficient permissions' },
 				{ status: 403 }
 			);
 		}
@@ -60,39 +62,39 @@ export async function POST(req: Request) {
 		// Получаем данные из запроса
 		const { name } = await req.json();
 
-		if (!name || typeof name !== "string" || name.trim().length === 0) {
+		if (!name || typeof name !== 'string' || name.trim().length === 0) {
 			return NextResponse.json(
-				{ error: "Category name is required" },
+				{ error: 'Category name is required' },
 				{ status: 400 }
 			);
 		}
 
 		// Проверяем, что категория с таким именем не существует
-		const existingCategory = await prisma.category.findUnique({
-			where: { name: name.trim() },
-		});
+		const existingCategory = await db
+			.select()
+			.from(categories)
+			.where(eq(categories.name, name.trim()))
+			.limit(1);
 
-		if (existingCategory) {
+		if (existingCategory.length > 0) {
 			return NextResponse.json(
-				{ error: "Category with this name already exists" },
+				{ error: 'Category with this name already exists' },
 				{ status: 409 }
 			);
 		}
 
 		// Создаем новую категорию
-		const newCategory = await prisma.category.create({
-			data: {
+		const newCategory = await db
+			.insert(categories)
+			.values({
 				name: name.trim(),
-			},
-		});
+			})
+			.returning();
 
-		return NextResponse.json(newCategory, { status: 201 });
+		return NextResponse.json(newCategory[0], { status: 201 });
 	} catch (error) {
-		console.error("Create category error:", error);
-		return NextResponse.json(
-			{ error: "Internal server error" },
-			{ status: 500 }
-		);
+		console.error('Create category error:', error);
+		return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
 	}
 }
 
@@ -104,19 +106,20 @@ export async function PUT(req: Request) {
 
 		if (!id || !name) {
 			return NextResponse.json(
-				{ error: "Category ID and name are required" },
+				{ error: 'Category ID and name are required' },
 				{ status: 400 }
 			);
 		}
 
-		const updatedCategory = await prisma.category.update({
-			where: { id: Number(id) },
-			data: {
+		const updatedCategory = await db
+			.update(categories)
+			.set({
 				name,
-			},
-		});
+			})
+			.where(eq(categories.id, Number(id)))
+			.returning();
 
-		return NextResponse.json(updatedCategory);
+		return NextResponse.json(updatedCategory[0]);
 	} catch (error) {
 		return NextResponse.json({ error }, { status: 500 });
 	}
@@ -126,18 +129,19 @@ export async function PUT(req: Request) {
 export async function DELETE(req: Request) {
 	try {
 		const { searchParams } = new URL(req.url);
-		const categoryId = searchParams.get("id");
+		const categoryId = searchParams.get('id');
 
 		if (!categoryId) {
-			return NextResponse.json({ error: "Category ID is required" }, { status: 400 });
+			return NextResponse.json(
+				{ error: 'Category ID is required' },
+				{ status: 400 }
+			);
 		}
 
 		// Удаляем категорию
-		await prisma.category.delete({
-			where: { id: Number(categoryId) },
-		});
+		await db.delete(categories).where(eq(categories.id, Number(categoryId)));
 
-		return NextResponse.json({ message: "Category deleted successfully" });
+		return NextResponse.json({ message: 'Category deleted successfully' });
 	} catch (error) {
 		return NextResponse.json({ error }, { status: 500 });
 	}

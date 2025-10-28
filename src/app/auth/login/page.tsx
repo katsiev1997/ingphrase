@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Mail, ArrowLeft } from "lucide-react";
-import Link from "next/link";
-import { useAuth } from "@/shared/hooks/use-auth";
-import { useLogin } from "@/shared/hooks/use-login";
+import { useState } from 'react';
+import { Mail, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
+import { useAuth } from '@/shared/hooks/use-auth';
+import { useLogin } from '@/shared/hooks/use-login';
 
 export default function LoginPage() {
-	const [email, setEmail] = useState("");
+	const [email, setEmail] = useState('');
 	const { user, loading } = useAuth();
 	const loginMutation = useLogin();
 
@@ -22,11 +22,11 @@ export default function LoginPage() {
 			await loginMutation.mutateAsync({ email });
 			// Перенаправляем на главную страницу через 1 секунду
 			setTimeout(() => {
-				window.location.href = "/";
+				window.location.href = '/';
 			}, 1000);
 		} catch (error) {
 			// Ошибка обрабатывается автоматически через React Query
-			console.error("Login error:", error);
+			console.error('Login error:', error);
 		}
 	};
 
@@ -46,7 +46,7 @@ export default function LoginPage() {
 					{/* Кнопка назад */}
 					<Link
 						href="/"
-						className="inline-flex items-center gap-2 text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-200 transition-colors"
+						className="inline-flex items-center gap-2 text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 hover:bg-white/20 dark:hover:text-emerald-200 transition-colors"
 					>
 						<ArrowLeft className="h-4 w-4" />
 						Назад
@@ -81,7 +81,7 @@ export default function LoginPage() {
 				{/* Кнопка назад */}
 				<Link
 					href="/"
-					className="inline-flex items-center gap-2 text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-200 transition-colors"
+					className="inline-flex items-center gap-2 text-emerald-600 hover:bg-white/20 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-200 transition-colors"
 				>
 					<ArrowLeft className="h-4 w-4" />
 					Назад
@@ -101,20 +101,21 @@ export default function LoginPage() {
 						</p>
 					</div>
 
-					{loginMutation.isSuccess ?
+					{loginMutation.isSuccess ? (
 						<div className="text-center">
 							<div className="text-green-500 text-6xl mb-4">✓</div>
 							<h3 className="text-lg font-semibold text-emerald-900 dark:text-emerald-100 mb-2">
 								Успешная авторизация!
 							</h3>
 							<p className="text-emerald-600 dark:text-emerald-400 mb-6">
-								{loginMutation.data?.message || "Успешная авторизация!"}
+								{loginMutation.data?.message || 'Успешная авторизация!'}
 							</p>
 							<p className="text-sm text-emerald-500 dark:text-emerald-400">
 								Перенаправление на главную страницу...
 							</p>
 						</div>
-					:	<form onSubmit={handleSubmit} className="space-y-6">
+					) : (
+						<form onSubmit={handleSubmit} className="space-y-6">
 							<div>
 								<label
 									htmlFor="email"
@@ -135,8 +136,7 @@ export default function LoginPage() {
 
 							{loginMutation.isError && (
 								<div className="text-red-600 dark:text-red-400 text-sm text-center">
-									{loginMutation.error?.message ||
-										"Произошла ошибка при авторизации"}
+									{loginMutation.error?.message || 'Произошла ошибка при авторизации'}
 								</div>
 							)}
 
@@ -145,19 +145,20 @@ export default function LoginPage() {
 								disabled={loginMutation.isPending}
 								className="w-full bg-emerald-600 text-white py-3 px-4 rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
 							>
-								{loginMutation.isPending ?
+								{loginMutation.isPending ? (
 									<>
 										<div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
 										Вход...
 									</>
-								:	<>
+								) : (
+									<>
 										<Mail className="h-5 w-5" />
 										Войти в приложение
 									</>
-								}
+								)}
 							</button>
 						</form>
-					}
+					)}
 
 					<div className="mt-6 text-center">
 						<p className="text-xs text-emerald-500 dark:text-emerald-400">

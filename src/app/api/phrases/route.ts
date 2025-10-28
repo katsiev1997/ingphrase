@@ -1,37 +1,35 @@
-import { NextResponse } from "next/server";
-import { prisma } from "../../../../prisma/prisma-client";
-import type { NextRequest } from "next/server";
+import { NextResponse } from 'next/server';
+import { phrases, categories } from '../../../db/schema';
+import { eq } from 'drizzle-orm';
+import type { NextRequest } from 'next/server';
 import {
 	checkModeratorAuth,
 	createAuthErrorResponse,
-} from "../../../shared/lib/auth-utils";
+} from '../../../shared/lib/auth-utils';
+import { db } from '@/db/drizzle';
 
 // GET /api/phrases
 export async function GET(req: NextRequest) {
 	try {
 		const { searchParams } = req.nextUrl;
-		const categoryId = searchParams.get("categoryId");
+		const categoryId = searchParams.get('categoryId');
 
 		if (!categoryId) {
-			return NextResponse.json(
-				{ error: "Category not found" },
-				{ status: 404 }
-			);
+			return NextResponse.json({ error: 'Category not found' }, { status: 404 });
 		}
 
-		const phrases = await prisma.phrase.findMany({
-			where: { categoryId: Number(categoryId) },
-			orderBy: {
-				title: "asc",
-			},
-		});
+		const phrasesList = await db
+			.select()
+			.from(phrases)
+			.where(eq(phrases.categoryId, Number(categoryId)))
+			.orderBy(phrases.title);
 
 		// Проверяем длину массива фраз
-		if (phrases.length === 0) {
-			return NextResponse.json({ error: "No phrases found" }, { status: 404 });
+		if (phrasesList.length === 0) {
+			return NextResponse.json({ error: 'No phrases found' }, { status: 404 });
 		}
 
-		return NextResponse.json(phrases);
+		return NextResponse.json(phrasesList);
 	} catch (error) {
 		return NextResponse.json({ error }, { status: 500 });
 	}
@@ -52,43 +50,40 @@ export async function POST(req: NextRequest) {
 		// Валидация данных
 		if (!title || !translate || !transcription || !categoryId) {
 			return NextResponse.json(
-				{ error: "All fields are required" },
+				{ error: 'All fields are required' },
 				{ status: 400 }
 			);
 		}
 
 		// Проверяем существование категории
-		const category = await prisma.category.findUnique({
-			where: { id: Number(categoryId) },
-		});
+		const category = await db
+			.select()
+			.from(categories)
+			.where(eq(categories.id, Number(categoryId)))
+			.limit(1);
 
-		if (!category) {
-			return NextResponse.json(
-				{ error: "Category not found" },
-				{ status: 404 }
-			);
+		if (category.length === 0) {
+			return NextResponse.json({ error: 'Category not found' }, { status: 404 });
 		}
 
 		// Создаем новую фразу
-		const phrase = await prisma.phrase.create({
-			data: {
+		const phrase = await db
+			.insert(phrases)
+			.values({
 				title,
 				translate,
 				transcription,
 				categoryId: Number(categoryId),
-			},
-		});
+			})
+			.returning();
 
 		return NextResponse.json({
 			success: true,
-			phrase,
+			phrase: phrase[0],
 		});
 	} catch (error) {
-		console.error("Create phrase error:", error);
-		return NextResponse.json(
-			{ error: "Internal server error" },
-			{ status: 500 }
-		);
+		console.error('Create phrase error:', error);
+		return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
 	}
 }
 
@@ -98,20 +93,19 @@ export async function PUT(req: NextRequest) {
 		const body = await req.json();
 		const { id, title, translate, transcription, audioUrl, categoryId } = body;
 
-		const updatedPhrase = await prisma.phrase.update({
-			where: { id: Number(id) },
-			data: {
+		const updatedPhrase = await db
+			.update(phrases)
+			.set({
 				title,
 				translate,
 				transcription,
 				audioUrl,
-				category: {
-					connect: { id: Number(categoryId) },
-				},
-			},
-		});
+				categoryId: Number(categoryId),
+			})
+			.where(eq(phrases.id, Number(id)))
+			.returning();
 
-		return NextResponse.json(updatedPhrase);
+		return NextResponse.json(updatedPhrase[0]);
 	} catch (error) {
 		return NextResponse.json({ error }, { status: 500 });
 	}
@@ -121,21 +115,19 @@ export async function PUT(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
 	try {
 		const { searchParams } = new URL(req.url);
-		const phraseId = searchParams.get("id");
+		const phraseId = searchParams.get('id');
 
 		if (!phraseId) {
 			return NextResponse.json(
-				{ error: "Phrase ID is required" },
+				{ error: 'Phrase ID is required' },
 				{ status: 400 }
 			);
 		}
 
-		await prisma.phrase.delete({
-			where: { id: Number(phraseId) },
-		});
+		await db.delete(phrases).where(eq(phrases.id, Number(phraseId)));
 
 		return NextResponse.json(
-			{ message: "Phrase deleted successfully" },
+			{ message: 'Phrase deleted successfully' },
 			{ status: 200 }
 		);
 	} catch (error) {

@@ -1,31 +1,55 @@
-import { prisma } from "../../../../../prisma/prisma-client";
-import { NextRequest, NextResponse } from "next/server";
+import { db } from '@/db/drizzle';
+import { users, phrases, favoritePhrases } from '../../../../db/schema';
+import { eq, and } from 'drizzle-orm';
+import { NextRequest, NextResponse } from 'next/server';
 
 // GET /api/phrases/favorites?userId=1
 export async function GET(req: NextRequest) {
 	try {
 		const { searchParams } = new URL(req.url);
-		const userId = searchParams.get("userId");
+		const userId = searchParams.get('userId');
 
 		// Проверка на наличие userId в запросе
 		if (!userId) {
-			return NextResponse.json({ error: "User ID is required" }, { status: 400 });
+			return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
 		}
 
-		// Получаем пользователя вместе с его избранными фразами
-		const userWithFavorites = await prisma.user.findUnique({
-			where: { id: Number(userId) },
-			include: {
-				favoritePhrases: true, // Включаем избранные фразы пользователя
-			},
-		});
+		// Проверяем существование пользователя
+		const user = await db
+			.select()
+			.from(users)
+			.where(eq(users.id, Number(userId)))
+			.limit(1);
 
-		if (!userWithFavorites) {
-			return NextResponse.json({ error: "User not found" }, { status: 404 });
+		if (user.length === 0) {
+			return NextResponse.json({ error: 'User not found' }, { status: 404 });
 		}
 
-		// Возвращаем только избранные фразы
-		return NextResponse.json(userWithFavorites.favoritePhrases);
+		// Получаем избранные фразы пользователя
+		const userFavorites = await db
+			.select({
+				userId: favoritePhrases.userId,
+				phraseId: favoritePhrases.phraseId,
+				phrase: {
+					id: phrases.id,
+					title: phrases.title,
+					translate: phrases.translate,
+					transcription: phrases.transcription,
+					audioUrl: phrases.audioUrl,
+					categoryId: phrases.categoryId,
+					createdAt: phrases.createdAt,
+					updatedAt: phrases.updatedAt,
+				},
+			})
+			.from(favoritePhrases)
+			.leftJoin(phrases, eq(favoritePhrases.phraseId, phrases.id))
+			.where(eq(favoritePhrases.userId, Number(userId)));
+
+		// Возвращаем только фразы
+		const favoritePhrasesList = userFavorites
+			.map((fav) => fav.phrase)
+			.filter(Boolean);
+		return NextResponse.json(favoritePhrasesList);
 	} catch (error) {
 		return NextResponse.json({ error }, { status: 500 });
 	}
@@ -40,42 +64,86 @@ export async function POST(req: NextRequest) {
 		// Проверка на наличие необходимых данных
 		if (!userId || !phraseId) {
 			return NextResponse.json(
-				{ error: "User ID and Phrase ID are required" },
+				{ error: 'User ID and Phrase ID are required' },
 				{ status: 400 }
 			);
 		}
 
 		// Проверяем, существует ли пользователь
-		const user = await prisma.user.findUnique({
-			where: { id: Number(userId) },
-			include: { favoritePhrases: true },
-		});
+		const user = await db
+			.select()
+			.from(users)
+			.where(eq(users.id, Number(userId)))
+			.limit(1);
 
-		if (!user) {
-			return NextResponse.json({ error: "User not found" }, { status: 404 });
+		if (user.length === 0) {
+			return NextResponse.json({ error: 'User not found' }, { status: 404 });
 		}
 
 		// Проверяем, существует ли фраза
-		const phrase = await prisma.phrase.findUnique({
-			where: { id: Number(phraseId) },
-		});
+		const phrase = await db
+			.select()
+			.from(phrases)
+			.where(eq(phrases.id, Number(phraseId)))
+			.limit(1);
 
-		if (!phrase) {
-			return NextResponse.json({ error: "Phrase not found" }, { status: 404 });
+		if (phrase.length === 0) {
+			return NextResponse.json({ error: 'Phrase not found' }, { status: 404 });
+		}
+
+		// Проверяем, не добавлена ли уже фраза в избранное
+		const existingFavorite = await db
+			.select()
+			.from(favoritePhrases)
+			.where(
+				and(
+					eq(favoritePhrases.userId, Number(userId)),
+					eq(favoritePhrases.phraseId, Number(phraseId))
+				)
+			)
+			.limit(1);
+
+		if (existingFavorite.length > 0) {
+			return NextResponse.json(
+				{ error: 'Phrase already in favorites' },
+				{ status: 409 }
+			);
 		}
 
 		// Добавляем фразу в избранное пользователя
-		const updatedUser = await prisma.user.update({
-			where: { id: Number(userId) },
-			data: {
-				favoritePhrases: {
-					connect: { id: Number(phraseId) }, // Добавляем связь с фразой
-				},
-			},
-			include: { favoritePhrases: true }, // Возвращаем обновленный список избранных фраз
+		await db.insert(favoritePhrases).values({
+			userId: Number(userId),
+			phraseId: Number(phraseId),
 		});
 
-		return NextResponse.json(updatedUser);
+		// Получаем обновленный список избранных фраз
+		const updatedFavorites = await db
+			.select({
+				userId: favoritePhrases.userId,
+				phraseId: favoritePhrases.phraseId,
+				phrase: {
+					id: phrases.id,
+					title: phrases.title,
+					translate: phrases.translate,
+					transcription: phrases.transcription,
+					audioUrl: phrases.audioUrl,
+					categoryId: phrases.categoryId,
+					createdAt: phrases.createdAt,
+					updatedAt: phrases.updatedAt,
+				},
+			})
+			.from(favoritePhrases)
+			.leftJoin(phrases, eq(favoritePhrases.phraseId, phrases.id))
+			.where(eq(favoritePhrases.userId, Number(userId)));
+
+		const favoritePhrasesList = updatedFavorites
+			.map((fav) => fav.phrase)
+			.filter(Boolean);
+
+		return NextResponse.json({
+			...user[0],
+			favoritePhrases: favoritePhrasesList,
+		});
 	} catch (error) {
 		return NextResponse.json({ error }, { status: 500 });
 	}
@@ -85,28 +153,61 @@ export async function POST(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
 	try {
 		const { searchParams } = new URL(req.url);
-		const userId = searchParams.get("userId");
-		const phraseId = searchParams.get("phraseId");
+		const userId = searchParams.get('userId');
+		const phraseId = searchParams.get('phraseId');
 
 		if (!userId || !phraseId) {
 			return NextResponse.json(
-				{ error: "User ID and Phrase ID are required" },
+				{ error: 'User ID and Phrase ID are required' },
 				{ status: 400 }
 			);
 		}
 
-		// Удаление фразы из избранного
-		const updatedUser = await prisma.user.update({
-			where: { id: Number(userId) },
-			data: {
-				favoritePhrases: {
-					disconnect: { id: Number(phraseId) }, // Удаляем связь с фразой
-				},
-			},
-			include: { favoritePhrases: true }, // Возвращаем обновленный список избранных фраз
-		});
+		// Удаляем фразу из избранного
+		await db
+			.delete(favoritePhrases)
+			.where(
+				and(
+					eq(favoritePhrases.userId, Number(userId)),
+					eq(favoritePhrases.phraseId, Number(phraseId))
+				)
+			);
 
-		return NextResponse.json(updatedUser);
+		// Получаем обновленный список избранных фраз
+		const updatedFavorites = await db
+			.select({
+				userId: favoritePhrases.userId,
+				phraseId: favoritePhrases.phraseId,
+				phrase: {
+					id: phrases.id,
+					title: phrases.title,
+					translate: phrases.translate,
+					transcription: phrases.transcription,
+					audioUrl: phrases.audioUrl,
+					categoryId: phrases.categoryId,
+					createdAt: phrases.createdAt,
+					updatedAt: phrases.updatedAt,
+				},
+			})
+			.from(favoritePhrases)
+			.leftJoin(phrases, eq(favoritePhrases.phraseId, phrases.id))
+			.where(eq(favoritePhrases.userId, Number(userId)));
+
+		const favoritePhrasesList = updatedFavorites
+			.map((fav) => fav.phrase)
+			.filter(Boolean);
+
+		// Получаем информацию о пользователе
+		const user = await db
+			.select()
+			.from(users)
+			.where(eq(users.id, Number(userId)))
+			.limit(1);
+
+		return NextResponse.json({
+			...user[0],
+			favoritePhrases: favoritePhrasesList,
+		});
 	} catch (error) {
 		return NextResponse.json({ error }, { status: 500 });
 	}

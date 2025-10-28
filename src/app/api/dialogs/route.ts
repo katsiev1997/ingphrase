@@ -1,30 +1,40 @@
-import { NextResponse } from "next/server";
-import { prisma } from "../../../../prisma/prisma-client";
-import type { NextRequest } from "next/server";
+import { NextResponse } from 'next/server';
+import { dialogues, messages } from '../../../db/schema';
+import { eq, desc } from 'drizzle-orm';
+import type { NextRequest } from 'next/server';
 import {
 	checkModeratorAuth,
 	createAuthErrorResponse,
-} from "../../../shared/lib/auth-utils";
+} from '../../../shared/lib/auth-utils';
+import { db } from '@/db/drizzle';
 
 // GET /api/dialogs
 export async function GET() {
 	try {
-		const dialogues = await prisma.dialogue.findMany({
-			include: {
-				messages: true,
-			},
-			orderBy: {
-				createdAt: "desc",
-			},
-		});
+		const dialoguesList = await db
+			.select()
+			.from(dialogues)
+			.orderBy(desc(dialogues.createdAt));
 
-		return NextResponse.json(dialogues);
-	} catch (error) {
-		console.error("Get dialogues error:", error);
-		return NextResponse.json(
-			{ error: "Internal server error" },
-			{ status: 500 }
+		// Получаем сообщения для каждого диалога
+		const dialoguesWithMessages = await Promise.all(
+			dialoguesList.map(async (dialogue) => {
+				const dialogueMessages = await db
+					.select()
+					.from(messages)
+					.where(eq(messages.dialogueId, dialogue.id));
+
+				return {
+					...dialogue,
+					messages: dialogueMessages,
+				};
+			})
 		);
+
+		return NextResponse.json(dialoguesWithMessages);
+	} catch (error) {
+		console.error('Get dialogues error:', error);
+		return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
 	}
 }
 
@@ -38,58 +48,66 @@ export async function POST(req: NextRequest) {
 		}
 
 		// Получаем данные из запроса
-		const { title, messages } = await req.json();
+		const { title, messages: messagesData } = await req.json();
 
 		// Валидация данных
 		if (
 			!title ||
-			!messages ||
-			!Array.isArray(messages) ||
-			messages.length === 0
+			!messagesData ||
+			!Array.isArray(messagesData) ||
+			messagesData.length === 0
 		) {
 			return NextResponse.json(
-				{ error: "Title and messages are required" },
+				{ error: 'Title and messages are required' },
 				{ status: 400 }
 			);
 		}
 
 		// Валидация сообщений
-		for (const message of messages) {
+		for (const message of messagesData) {
 			if (!message.originalText || !message.translatedText) {
 				return NextResponse.json(
-					{ error: "All messages must have originalText and translatedText" },
+					{ error: 'All messages must have originalText and translatedText' },
 					{ status: 400 }
 				);
 			}
 		}
 
-		// Создаем диалог с сообщениями
-		const dialogue = await prisma.dialogue.create({
-			data: {
+		// Создаем диалог
+		const newDialogue = await db
+			.insert(dialogues)
+			.values({
 				title,
-				messages: {
-					create: messages.map(
-						(message: { originalText: string; translatedText: string }) => ({
-							originalText: message.originalText,
-							translatedText: message.translatedText,
-						})
-					),
-				},
-			},
-			include: {
-				messages: true,
-			},
-		});
+			})
+			.returning();
+
+		const dialogueId = newDialogue[0].id;
+
+		// Создаем сообщения для диалога
+		const dialogueMessages = await db
+			.insert(messages)
+			.values(
+				messagesData.map(
+					(message: { originalText: string; translatedText: string }) => ({
+						originalText: message.originalText,
+						translatedText: message.translatedText,
+						dialogueId,
+					})
+				)
+			)
+			.returning();
+
+		const dialogue = {
+			...newDialogue[0],
+			messages: dialogueMessages,
+		};
 
 		return NextResponse.json({
 			success: true,
 			dialogue,
 		});
 	} catch (error) {
-		console.error("Create dialogue error:", error);
-		return NextResponse.json(
-			{ error: "Internal server error" },
-			{ status: 500 }
-		);
+		console.error('Create dialogue error:', error);
+		return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
 	}
 }

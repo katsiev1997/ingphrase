@@ -1,12 +1,14 @@
-import { verify } from "jsonwebtoken";
-import { cookies } from "next/headers";
-import { prisma } from "../../../prisma/prisma-client";
-import { NextResponse } from "next/server";
+import { verify } from 'jsonwebtoken';
+import { cookies } from 'next/headers';
+import { users } from '../../db/schema';
+import { eq } from 'drizzle-orm';
+import { NextResponse } from 'next/server';
+import { db } from '@/db/drizzle';
 
 export interface AuthenticatedUser {
 	id: number;
 	email: string;
-	role: "ADMIN" | "MODERATOR" | "USER";
+	role: 'ADMIN' | 'MODERATOR' | 'USER';
 }
 
 export interface AuthResult {
@@ -21,12 +23,12 @@ export interface AuthResult {
  */
 export async function checkAuth(): Promise<AuthResult> {
 	try {
-		const token = (await cookies()).get("token");
+		const token = (await cookies()).get('token');
 
 		if (!token) {
 			return {
 				success: false,
-				error: "Unauthorized",
+				error: 'Unauthorized',
 				statusCode: 401,
 			};
 		}
@@ -34,38 +36,39 @@ export async function checkAuth(): Promise<AuthResult> {
 		// Проверяем валидность токена
 		const decoded = verify(
 			token.value,
-			process.env.JWT_SECRET || "fallback-secret"
+			process.env.JWT_SECRET || 'fallback-secret'
 		) as {
 			userId: string;
 		};
 
 		// Получаем информацию о пользователе
-		const user = await prisma.user.findUnique({
-			where: { id: Number(decoded.userId) },
-			select: {
-				id: true,
-				email: true,
-				role: true,
-			},
-		});
+		const user = await db
+			.select({
+				id: users.id,
+				email: users.email,
+				role: users.role,
+			})
+			.from(users)
+			.where(eq(users.id, Number(decoded.userId)))
+			.limit(1);
 
-		if (!user) {
+		if (user.length === 0) {
 			return {
 				success: false,
-				error: "User not found",
+				error: 'User not found',
 				statusCode: 401,
 			};
 		}
 
 		return {
 			success: true,
-			user: user as AuthenticatedUser,
+			user: user[0] as AuthenticatedUser,
 		};
 	} catch (error) {
-		console.error("Auth check error:", error);
+		console.error('Auth check error:', error);
 		return {
 			success: false,
-			error: "Invalid token",
+			error: 'Invalid token',
 			statusCode: 401,
 		};
 	}
@@ -84,10 +87,10 @@ export async function checkModeratorAuth(): Promise<AuthResult> {
 	const user = authResult.user!;
 
 	// Проверяем права доступа (только MODERATOR и ADMIN)
-	if (user.role !== "MODERATOR" && user.role !== "ADMIN") {
+	if (user.role !== 'MODERATOR' && user.role !== 'ADMIN') {
 		return {
 			success: false,
-			error: "Insufficient permissions",
+			error: 'Insufficient permissions',
 			statusCode: 403,
 		};
 	}
@@ -108,10 +111,10 @@ export async function checkAdminAuth(): Promise<AuthResult> {
 	const user = authResult.user!;
 
 	// Проверяем права доступа (только ADMIN)
-	if (user.role !== "ADMIN") {
+	if (user.role !== 'ADMIN') {
 		return {
 			success: false,
-			error: "Insufficient permissions",
+			error: 'Insufficient permissions',
 			statusCode: 403,
 		};
 	}
